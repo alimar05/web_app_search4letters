@@ -1,12 +1,30 @@
 from flask import Flask, render_template, request, escape
 from search4letters import search4letters
+import mysql.connector
 
 app = Flask(__name__)
 
 
 def log_request(req: 'flask_request', res: str) -> None:
-    with open('vsearch.log', 'a') as log:
-        print(req.form, req.remote_addr, req.user_agent, res, file=log, sep='|')
+    dbconfig = {'host': '127.0.0.1',
+                'port': '3333',
+                'user': 'vsearch',
+                'password': 'vsearchpasswd',
+                'database': 'databaselogDB'}
+    conn = mysql.connector(**dbconfig)
+    cursor = conn.cursor()
+    _SQL = ('insert into log\n'
+            '    (phrase, letters, ip, browser_string, results)\n'
+            '    values\n'
+            '    (%s, %s, %s, %s, %s)')
+    cursor.execute(_SQL, (req.form['phrase'],
+                          req.form['letters'],
+                          req.remote_addr,
+                          req.user_agent.browser,
+                          res))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 @app.route('/viewlog')
