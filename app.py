@@ -10,8 +10,8 @@ def log_request(req: 'flask_request', res: str) -> None:
                 'port': '3333',
                 'user': 'vsearch',
                 'password': 'vsearchpasswd',
-                'database': 'databaselogDB'}
-    conn = mysql.connector(**dbconfig)
+                'database': 'vsearchlogDB'}
+    conn = mysql.connector.connect(**dbconfig)
     cursor = conn.cursor()
     _SQL = ('insert into log\n'
             '    (phrase, letters, ip, browser_string, results)\n'
