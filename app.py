@@ -1,8 +1,21 @@
-from flask import Flask, render_template, request, escape
+from flask import Flask, render_template, request, escape, session
 from search4letters import search4letters
 from DBcm import UseDatabase
+from checker import check_logged_in
 
 app = Flask(__name__)
+
+@app.route('/login')
+def do_login() -> str:
+    session['logged_in'] = True
+    return 'You are now logged_in.'
+
+
+@app.route('/logout')
+def do_logout() -> str:
+    session.pop('logged_in')
+    return 'You are now logged out.'
+
 
 app.config['dbconfig'] = {'host': '127.0.0.1',
                           'port': '3333',
@@ -25,6 +38,7 @@ def log_request(req: 'flask_request', res: str) -> None:
 
 
 @app.route('/viewlog')
+@check_logged_in
 def view_the_log() -> 'html':
     with UseDatabase(app.config['dbconfig']) as cursor:
         _SQL = """select phrase, letters, ip, browser_string, results
@@ -58,6 +72,8 @@ def entry_page() -> 'html':
     return render_template('entry.html',
                            the_title='Welcome to search4letters on the web!')
 
+
+app.secret_key = 'YouWillNeverGuessMySecretKey'
 
 if __name__ == '__main__':
     app.run(debug=True)
